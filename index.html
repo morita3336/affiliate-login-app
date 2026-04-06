@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>アフィリエイト管理</title>
-<link rel="icon" href="favicon.png">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
@@ -337,6 +337,49 @@
     text-decoration: underline;
     margin-top: 0.5rem;
   }
+
+  /* メモ */
+  .memo-area {
+    width: 100%; min-height: 100px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 14px; line-height: 1.7;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg); color: var(--text);
+    resize: vertical;
+  }
+  .memo-area:focus { outline: none; border-color: var(--green-mid); }
+  .memo-save-btn {
+    margin-top: 8px; padding: 8px 20px;
+    background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+  }
+  .memo-history-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .memo-history-item:last-child { border-bottom: none; }
+  .memo-history-date { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; font-weight: 700; }
+  .memo-history-text { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+
+  /* グラフ */
+  .graph-toggle {
+    display: flex; gap: 4px;
+    background: var(--bg); border-radius: var(--radius-sm);
+    padding: 3px; margin-bottom: 1rem;
+    border: 1px solid var(--border);
+  }
+  .graph-toggle button {
+    flex: 1; padding: 7px; border: none; background: none;
+    border-radius: 6px; font-size: 13px; cursor: pointer;
+    color: var(--text-sub); font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500; transition: all 0.15s;
+  }
+  .graph-toggle button.active {
+    background: var(--card); color: var(--green); border: 1px solid var(--border);
+  }
+  .chart-wrap { position: relative; height: 220px; margin: 0.5rem 0; }
+  .chart-empty { font-size: 13px; color: var(--text-hint); text-align: center; padding: 3rem 0; }
 </style>
 </head>
 <body>
@@ -368,8 +411,10 @@
 <div class="tab-bar">
   <button class="tab active" onclick="switchTab('home')">ホーム</button>
   <button class="tab" onclick="switchTab('history')">履歴</button>
+  <button class="tab" onclick="switchTab('memo')">メモ</button>
+  <button class="tab" onclick="switchTab('graph')">グラフ</button>
   <button class="tab" onclick="switchTab('badges')">バッジ</button>
-  <button class="tab" onclick="switchTab('data')">データ管理</button>
+  <button class="tab" onclick="switchTab('data')">データ</button>
 </div>
 
 <!-- ホーム -->
@@ -422,6 +467,43 @@
   <div class="card">
     <div class="section-label">作業履歴</div>
     <div id="histList"></div>
+  </div>
+</div>
+
+<!-- メモ -->
+<div class="page" id="pageMemo">
+  <div class="card">
+    <div class="section-label">今日のメモ</div>
+    <textarea class="memo-area" id="memoInput" placeholder="今日の気づき・作業内容・反省点など自由に記録できます"></textarea>
+    <button class="memo-save-btn" onclick="saveMemo()">保存する</button>
+  </div>
+  <div class="card">
+    <div class="section-label">過去のメモ</div>
+    <div id="memoHistList"></div>
+  </div>
+</div>
+
+<!-- グラフ -->
+<div class="page" id="pageGraph">
+  <div class="card">
+    <div class="section-label">ポイント推移</div>
+    <div class="graph-toggle">
+      <button class="active" id="graphWeekBtn" onclick="switchGraph('week')">週次</button>
+      <button id="graphMonthBtn" onclick="switchGraph('month')">月次</button>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="ptChart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-label">タスク達成数推移</div>
+    <div class="graph-toggle">
+      <button class="active" id="taskWeekBtn" onclick="switchTaskGraph('week')">週次</button>
+      <button id="taskMonthBtn" onclick="switchTaskGraph('month')">月次</button>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="taskChart"></canvas>
+    </div>
   </div>
 </div>
 
@@ -759,14 +841,17 @@ function resetData() {
 }
 
 // UI
+const ALL_TABS = ['home','history','memo','graph','badges','data'];
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
-  document.querySelectorAll('.tab')[['home','history','badges','data'].indexOf(tab)].classList.add('active');
+  document.querySelectorAll('.tab')[ALL_TABS.indexOf(tab)].classList.add('active');
   if (tab==='history') renderHistory();
   if (tab==='badges') renderBadges();
+  if (tab==='memo') renderMemo();
+  if (tab==='graph') renderGraphs();
 }
 
 function toggleEdit() {
@@ -879,6 +964,152 @@ function render() {
     };
   }
   renderTasks(); renderStats();
+}
+
+// ---- メモ ----
+function saveMemo() {
+  const text = document.getElementById('memoInput').value.trim();
+  if (!text) { showToast('メモを入力してください'); return; }
+  if (!state.memos) state.memos = {};
+  state.memos[today()] = text;
+  saveLocal();
+  renderMemo();
+  showToast('📝 メモを保存しました');
+}
+
+function renderMemo() {
+  if (!state.memos) state.memos = {};
+  const input = document.getElementById('memoInput');
+  input.value = state.memos[today()] || '';
+  const histList = document.getElementById('memoHistList');
+  const past = Object.keys(state.memos).filter(d=>d!==today()).sort((a,b)=>b.localeCompare(a));
+  if (past.length === 0) {
+    histList.innerHTML = '<p class="chart-empty">過去のメモはまだありません</p>';
+    return;
+  }
+  histList.innerHTML = '';
+  past.forEach(date => {
+    const item = document.createElement('div');
+    item.className = 'memo-history-item';
+    item.innerHTML = `<div class="memo-history-date">${fmtDate(date)}</div><div class="memo-history-text">${state.memos[date]}</div>`;
+    histList.appendChild(item);
+  });
+}
+
+// ---- グラフ ----
+let ptChartInstance = null;
+let taskChartInstance = null;
+let ptGraphMode = 'week';
+let taskGraphMode = 'week';
+
+function switchGraph(mode) {
+  ptGraphMode = mode;
+  document.getElementById('graphWeekBtn').classList.toggle('active', mode==='week');
+  document.getElementById('graphMonthBtn').classList.toggle('active', mode==='month');
+  renderPtChart();
+}
+
+function switchTaskGraph(mode) {
+  taskGraphMode = mode;
+  document.getElementById('taskWeekBtn').classList.toggle('active', mode==='week');
+  document.getElementById('taskMonthBtn').classList.toggle('active', mode==='month');
+  renderTaskChart();
+}
+
+function getDateRange(mode) {
+  const dates = [];
+  const now = new Date();
+  const count = mode === 'week' ? 7 : 30;
+  for (let i = count-1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return dates;
+}
+
+function getHistoryData(dates) {
+  const td = today();
+  const allData = {
+    [td]: {pts: calcDayPts(state), tasksDone: state.tasksDone},
+    ...state.history
+  };
+  return dates.map(d => allData[d] || {pts:0, tasksDone:[]});
+}
+
+function renderPtChart() {
+  const dates = getDateRange(ptGraphMode);
+  const data = getHistoryData(dates);
+  const labels = dates.map(d => {
+    const dt = new Date(d+'T00:00:00');
+    return (dt.getMonth()+1)+'/'+ dt.getDate();
+  });
+  const pts = data.map(d => d.pts || 0);
+  const ctx = document.getElementById('ptChart').getContext('2d');
+  if (ptChartInstance) ptChartInstance.destroy();
+  ptChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'ポイント',
+        data: pts,
+        backgroundColor: '#5DCAA5',
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font: {size:11}, color:'#888' }, grid: { color:'rgba(0,0,0,0.05)' } },
+        x: { ticks: { font: {size:11}, color:'#888' }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+function renderTaskChart() {
+  const dates = getDateRange(taskGraphMode);
+  const data = getHistoryData(dates);
+  const labels = dates.map(d => {
+    const dt = new Date(d+'T00:00:00');
+    return (dt.getMonth()+1)+'/'+ dt.getDate();
+  });
+  const counts = data.map(d => (d.tasksDone||[]).length);
+  const ctx = document.getElementById('taskChart').getContext('2d');
+  if (taskChartInstance) taskChartInstance.destroy();
+  taskChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '達成タスク数',
+        data: counts,
+        borderColor: '#1D9E75',
+        backgroundColor: 'rgba(29,158,117,0.1)',
+        borderWidth: 2,
+        pointBackgroundColor: '#1D9E75',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { font:{size:11}, color:'#888', stepSize:1 }, grid: { color:'rgba(0,0,0,0.05)' } },
+        x: { ticks: { font:{size:11}, color:'#888' }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+function renderGraphs() {
+  renderPtChart();
+  renderTaskChart();
 }
 </script>
 </body>
