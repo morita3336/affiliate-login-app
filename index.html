@@ -1,0 +1,328 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.app{max-width:480px;margin:0 auto;padding:1rem;font-family:var(--font-sans)}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.tab-row{display:flex;gap:4px;margin-bottom:1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:4px}
+.tab{flex:1;padding:8px;border:none;background:none;border-radius:6px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);font-family:var(--font-sans)}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+.streak-circle{width:88px;height:88px;border-radius:50%;border:3px solid #1D9E75;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 0.75rem}
+.streak-num{font-size:30px;font-weight:500;color:#0F6E56;line-height:1}
+.streak-label{font-size:11px;color:#0F6E56;margin-top:2px}
+.page-title{font-size:18px;font-weight:500;color:var(--color-text-primary);text-align:center}
+.page-sub{font-size:13px;color:var(--color-text-secondary);text-align:center;margin-top:4px}
+.big-btn{width:100%;padding:13px;border:none;border-radius:var(--border-radius-md);font-size:15px;font-weight:500;cursor:pointer;transition:opacity 0.15s;margin-top:1rem}
+.big-btn.green{background:#1D9E75;color:#fff}
+.big-btn.done-state{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:12px}
+.task-btn{width:100%;padding:12px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;transition:all 0.15s;text-align:left}
+.task-btn.completed{background:#E1F5EE;border-color:#5DCAA5}
+.task-label{font-size:14px;color:var(--color-text-primary)}
+.task-btn.completed .task-label{color:#085041;text-decoration:line-through}
+.task-right{display:flex;align-items:center;gap:8px}
+.task-pt{font-size:12px;font-weight:500;color:#0F6E56;background:#E1F5EE;padding:3px 8px;border-radius:20px}
+.task-btn.completed .task-pt{background:#9FE1CB;color:#04342C}
+.del-btn{font-size:14px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:0 4px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.875rem;text-align:center}
+.stat-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.stat-lbl{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.badges-row{display:flex;flex-wrap:wrap;gap:8px}
+.badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500}
+.badge.locked{background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary)}
+.badge.unlocked{background:#E1F5EE;color:#085041}
+.add-row{display:flex;gap:8px;margin-top:12px}
+.add-row input{flex:1;height:36px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:0 10px;font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.add-row input.pt-input{width:64px;flex:none}
+.add-row button{height:36px;padding:0 14px;background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer}
+.edit-toggle{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;float:right;margin-top:-2px}
+.hist-item{padding:14px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.hist-item:last-child{border-bottom:none}
+.hist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.hist-date{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.hist-pts{font-size:13px;font-weight:500;color:#0F6E56;background:#E1F5EE;padding:3px 10px;border-radius:20px}
+.hist-tasks{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.hist-tag{font-size:12px;padding:3px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.hist-tag.bonus{background:#E1F5EE;color:#085041}
+.hist-empty{font-size:13px;color:var(--color-text-tertiary);text-align:center;padding:2rem 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2C2C2A;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+
+<div class="app">
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('home')">ホーム</button>
+    <button class="tab" onclick="switchTab('history')">履歴</button>
+    <button class="tab" onclick="switchTab('badges')">バッジ</button>
+  </div>
+
+  <div id="tabHome">
+    <div class="card">
+      <div class="streak-circle">
+        <span class="streak-num" id="streakNum">0</span>
+        <span class="streak-label">連続ログイン</span>
+      </div>
+      <p class="page-title">アフィリエイト管理</p>
+      <p class="page-sub" id="dateLabel"></p>
+      <div id="bonusArea"></div>
+    </div>
+
+    <div class="card">
+      <p class="section-title">
+        今日のデイリータスク
+        <button class="edit-toggle" id="editToggle" onclick="toggleEdit()">編集</button>
+      </p>
+      <div id="taskList"></div>
+      <div id="addRow" style="display:none">
+        <div class="add-row">
+          <input id="newTaskName" placeholder="タスク名を入力" />
+          <input id="newTaskPt" class="pt-input" type="number" placeholder="pt" min="1" max="999" />
+          <button onclick="addTask()">追加</button>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--color-border-tertiary);padding-top:12px">
+        <span style="font-size:13px;color:var(--color-text-secondary)">今日の獲得ポイント</span>
+        <span style="font-size:16px;font-weight:500;color:#0F6E56" id="todayPts">0 pt</span>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="totalPts">0</div>
+        <div class="stat-lbl">累計ポイント</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="taskDone">0/0</div>
+        <div class="stat-lbl">今日の達成タスク</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabHistory" style="display:none">
+    <div class="card">
+      <p class="section-title">作業履歴</p>
+      <div id="histList"></div>
+    </div>
+  </div>
+
+  <div id="tabBadges" style="display:none">
+    <div class="card">
+      <p class="section-title">獲得バッジ</p>
+      <div class="badges-row" id="badgesRow"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="totalPts2">0</div>
+        <div class="stat-lbl">累計ポイント</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="streakNum2">0</div>
+        <div class="stat-lbl">連続ログイン日数</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFAULT_TASKS=[
+  {id:'open',name:'サイト・HPを開いた',pt:10},
+  {id:'write',name:'記事を書いた',pt:30},
+  {id:'post',name:'記事を投稿した',pt:20},
+  {id:'research',name:'キーワードリサーチをした',pt:15}
+];
+const BADGES=[
+  {id:'first',label:'初日達成',req:s=>s.totalPts>=10},
+  {id:'streak3',label:'3日連続',req:s=>s.streak>=3},
+  {id:'streak7',label:'7日連続',req:s=>s.streak>=7},
+  {id:'pts100',label:'100pt突破',req:s=>s.totalPts>=100},
+  {id:'pts500',label:'500pt突破',req:s=>s.totalPts>=500},
+  {id:'alldaily',label:'全タスク制覇',req:s=>s.allTaskDays>=1},
+];
+
+let editMode=false;
+let currentTab='home';
+
+function today(){return new Date().toISOString().slice(0,10)}
+function load(){try{return JSON.parse(localStorage.getItem('aff3_state'))||{}}catch(e){return{}}}
+function save(){localStorage.setItem('aff3_state',JSON.stringify(state))}
+
+function fmtDate(str){
+  const d=new Date(str+'T00:00:00');
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
+}
+
+function initState(){
+  let s=load();
+  const td=today();
+  if(!s.lastLogin){
+    s={totalPts:0,streak:0,lastLogin:null,bonusToday:false,tasksDone:[],allTaskDays:0,unlockedBadges:[],tasks:DEFAULT_TASKS,history:{}};
+  }
+  if(!s.tasks)s.tasks=DEFAULT_TASKS;
+  if(!s.history)s.history={};
+  if(s.lastLogin!==td){
+    if(s.lastLogin){
+      s.history[s.lastLogin]={bonus:s.bonusToday,tasksDone:[...s.tasksDone],pts:calcDayPts(s)};
+    }
+    const prev=new Date();prev.setDate(prev.getDate()-1);
+    const yd=prev.toISOString().slice(0,10);
+    if(s.lastLogin===null)s.streak=1;
+    else s.streak=s.lastLogin===yd?(s.streak||0)+1:1;
+    s.lastLogin=td;s.bonusToday=false;s.tasksDone=[];
+    localStorage.setItem('aff3_state',JSON.stringify(s));
+  }
+  return s;
+}
+
+function calcDayPts(s){
+  return (s.bonusToday?20:0)+s.tasksDone.reduce((a,id)=>{const t=s.tasks.find(t=>t.id===id);return a+(t?t.pt:0);},0);
+}
+
+let state=initState();
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function checkBadges(){
+  BADGES.forEach(b=>{
+    if(!state.unlockedBadges.includes(b.id)&&b.req(state)){
+      state.unlockedBadges.push(b.id);
+      showToast('バッジ獲得: '+b.label+' !');
+    }
+  });
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  ['home','history','badges'].forEach(t=>{
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['home','history','badges'][i]===tab);
+  });
+  if(tab==='history')renderHistory();
+  if(tab==='badges')renderBadges();
+}
+
+function toggleEdit(){
+  editMode=!editMode;
+  document.getElementById('editToggle').textContent=editMode?'完了':'編集';
+  document.getElementById('addRow').style.display=editMode?'block':'none';
+  renderTasks();
+}
+
+function addTask(){
+  const name=document.getElementById('newTaskName').value.trim();
+  const pt=parseInt(document.getElementById('newTaskPt').value)||10;
+  if(!name)return;
+  state.tasks.push({id:'t'+Date.now(),name,pt});
+  document.getElementById('newTaskName').value='';
+  document.getElementById('newTaskPt').value='';
+  save();renderTasks();
+}
+
+function deleteTask(id){
+  state.tasks=state.tasks.filter(t=>t.id!==id);
+  state.tasksDone=state.tasksDone.filter(d=>d!==id);
+  save();renderTasks();
+}
+
+function tapTask(id){
+  if(state.tasksDone.includes(id))return;
+  const t=state.tasks.find(t=>t.id===id);
+  if(!t)return;
+  state.tasksDone.push(id);
+  state.totalPts+=t.pt;
+  if(state.tasksDone.length===state.tasks.length)state.allTaskDays=(state.allTaskDays||0)+1;
+  checkBadges();save();renderTasks();renderStats();
+  showToast(t.name+' +'+t.pt+'pt !');
+}
+
+function renderTasks(){
+  const taskList=document.getElementById('taskList');
+  taskList.innerHTML='';
+  state.tasks.forEach(t=>{
+    const done=state.tasksDone.includes(t.id);
+    const btn=document.createElement('button');
+    btn.className='task-btn'+(done?' completed':'');
+    btn.innerHTML=`<span class="task-label">${t.name}</span><span class="task-right"><span class="task-pt">+${t.pt}pt</span>${editMode?`<button class="del-btn" onclick="event.stopPropagation();deleteTask('${t.id}')">✕</button>`:''}</span>`;
+    if(!done&&!editMode)btn.onclick=()=>tapTask(t.id);
+    taskList.appendChild(btn);
+  });
+}
+
+function renderStats(){
+  const todayPts=calcDayPts(state);
+  document.getElementById('todayPts').textContent=todayPts+' pt';
+  document.getElementById('totalPts').textContent=state.totalPts;
+  document.getElementById('taskDone').textContent=state.tasksDone.length+'/'+state.tasks.length;
+}
+
+function renderHistory(){
+  const histList=document.getElementById('histList');
+  const keys=Object.keys(state.history).sort((a,b)=>b.localeCompare(a));
+  const todayData={bonus:state.bonusToday,tasksDone:[...state.tasksDone],pts:calcDayPts(state)};
+  const allKeys=[today(),...keys];
+  const allData={[today()]:todayData,...state.history};
+
+  if(allKeys.length===0){histList.innerHTML='<p class="hist-empty">まだ履歴がありません</p>';return;}
+  histList.innerHTML='';
+  allKeys.forEach(date=>{
+    const d=allData[date];
+    if(!d&&date!==today())return;
+    const item=document.createElement('div');item.className='hist-item';
+    const tags=[];
+    if(d.bonus)tags.push({label:'ログインボーナス',bonus:true});
+    (d.tasksDone||[]).forEach(id=>{
+      const t=state.tasks.find(t=>t.id===id);
+      if(t)tags.push({label:t.name,bonus:false});
+    });
+    const isToday=date===today();
+    item.innerHTML=`
+      <div class="hist-header">
+        <span class="hist-date">${fmtDate(date)}${isToday?' <span style="font-size:11px;color:#0F6E56;background:#E1F5EE;padding:2px 8px;border-radius:10px;margin-left:6px">今日</span>':''}</span>
+        <span class="hist-pts">${d.pts||0} pt</span>
+      </div>
+      <div class="hist-tasks">${tags.length?tags.map(tg=>`<span class="hist-tag${tg.bonus?' bonus':''}">${tg.label}</span>`).join(''):'<span class="hist-tag">記録なし</span>'}</div>
+    `;
+    histList.appendChild(item);
+  });
+}
+
+function renderBadges(){
+  document.getElementById('totalPts2').textContent=state.totalPts;
+  document.getElementById('streakNum2').textContent=state.streak;
+  const badgesRow=document.getElementById('badgesRow');
+  badgesRow.innerHTML='';
+  BADGES.forEach(b=>{
+    const unlocked=state.unlockedBadges.includes(b.id);
+    const el=document.createElement('span');
+    el.className='badge '+(unlocked?'unlocked':'locked');
+    el.textContent=b.label;
+    badgesRow.appendChild(el);
+  });
+}
+
+function render(){
+  const d=new Date();
+  document.getElementById('dateLabel').textContent=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  document.getElementById('streakNum').textContent=state.streak;
+  const bonusArea=document.getElementById('bonusArea');
+  if(state.bonusToday){
+    bonusArea.innerHTML='<div class="big-btn done-state">ログインボーナス受取済み ＋20pt</div>';
+  }else{
+    bonusArea.innerHTML='<button class="big-btn green" id="bonusBtn">ログインボーナスを受け取る（＋20pt）</button>';
+    document.getElementById('bonusBtn').onclick=()=>{
+      state.bonusToday=true;state.totalPts+=20;
+      checkBadges();save();render();showToast('ログインボーナス +20pt !');
+    };
+  }
+  renderTasks();renderStats();
+}
+
+render();
+</script>
