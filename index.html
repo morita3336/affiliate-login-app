@@ -1,328 +1,883 @@
-
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アフィリエイト管理</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-.app{max-width:480px;margin:0 auto;padding:1rem;font-family:var(--font-sans)}
-.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
-.tab-row{display:flex;gap:4px;margin-bottom:1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:4px}
-.tab{flex:1;padding:8px;border:none;background:none;border-radius:6px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);font-family:var(--font-sans)}
-.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
-.streak-circle{width:88px;height:88px;border-radius:50%;border:3px solid #1D9E75;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 0.75rem}
-.streak-num{font-size:30px;font-weight:500;color:#0F6E56;line-height:1}
-.streak-label{font-size:11px;color:#0F6E56;margin-top:2px}
-.page-title{font-size:18px;font-weight:500;color:var(--color-text-primary);text-align:center}
-.page-sub{font-size:13px;color:var(--color-text-secondary);text-align:center;margin-top:4px}
-.big-btn{width:100%;padding:13px;border:none;border-radius:var(--border-radius-md);font-size:15px;font-weight:500;cursor:pointer;transition:opacity 0.15s;margin-top:1rem}
-.big-btn.green{background:#1D9E75;color:#fff}
-.big-btn.done-state{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
-.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:12px}
-.task-btn{width:100%;padding:12px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;transition:all 0.15s;text-align:left}
-.task-btn.completed{background:#E1F5EE;border-color:#5DCAA5}
-.task-label{font-size:14px;color:var(--color-text-primary)}
-.task-btn.completed .task-label{color:#085041;text-decoration:line-through}
-.task-right{display:flex;align-items:center;gap:8px}
-.task-pt{font-size:12px;font-weight:500;color:#0F6E56;background:#E1F5EE;padding:3px 8px;border-radius:20px}
-.task-btn.completed .task-pt{background:#9FE1CB;color:#04342C}
-.del-btn{font-size:14px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;padding:0 4px}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
-.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:0.875rem;text-align:center}
-.stat-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
-.stat-lbl{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
-.badges-row{display:flex;flex-wrap:wrap;gap:8px}
-.badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500}
-.badge.locked{background:var(--color-background-secondary);color:var(--color-text-tertiary);border:0.5px dashed var(--color-border-tertiary)}
-.badge.unlocked{background:#E1F5EE;color:#085041}
-.add-row{display:flex;gap:8px;margin-top:12px}
-.add-row input{flex:1;height:36px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:0 10px;font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary)}
-.add-row input.pt-input{width:64px;flex:none}
-.add-row button{height:36px;padding:0 14px;background:#1D9E75;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:13px;cursor:pointer}
-.edit-toggle{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;float:right;margin-top:-2px}
-.hist-item{padding:14px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
-.hist-item:last-child{border-bottom:none}
-.hist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.hist-date{font-size:14px;font-weight:500;color:var(--color-text-primary)}
-.hist-pts{font-size:13px;font-weight:500;color:#0F6E56;background:#E1F5EE;padding:3px 10px;border-radius:20px}
-.hist-tasks{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.hist-tag{font-size:12px;padding:3px 10px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary)}
-.hist-tag.bonus{background:#E1F5EE;color:#085041}
-.hist-empty{font-size:13px;color:var(--color-text-tertiary);text-align:center;padding:2rem 0}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#2C2C2A;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;z-index:999}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-mid: #5DCAA5;
+    --green-dark: #085041;
+    --green-deep: #0F6E56;
+    --bg: #F7F9F8;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --text: #1a1a1a;
+    --text-sub: #666;
+    --text-hint: #aaa;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+
+  .header {
+    background: var(--green);
+    color: #fff;
+    padding: 1rem 1.25rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-title { font-size: 16px; font-weight: 700; }
+  .header-sub { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  .google-btn {
+    background: #fff;
+    color: var(--green-dark);
+    border: none;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  .user-name { font-size: 12px; opacity: 0.9; }
+
+  .tab-bar {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1rem;
+    position: sticky;
+    top: 60px;
+    z-index: 99;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: none;
+    font-size: 13px;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+
+  .page { display: none; padding: 1rem; max-width: 520px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .streak-wrap { text-align: center; padding: 0.5rem 0 1rem; }
+
+  .streak-circle {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--green);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 0.75rem;
+    background: var(--green-light);
+  }
+
+  .streak-num { font-size: 32px; font-weight: 700; color: var(--green-deep); line-height: 1; }
+  .streak-lbl { font-size: 10px; color: var(--green-deep); margin-top: 2px; }
+  .card-title-main { font-size: 17px; font-weight: 700; }
+  .card-date { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+
+  .big-btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 1rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .big-btn:active { transform: scale(0.98); }
+  .big-btn.green { background: var(--green); color: #fff; }
+  .big-btn.green:disabled { opacity: 0.35; cursor: default; }
+  .big-btn.received { background: var(--green-light); color: var(--green-dark); border: 1px solid var(--green-mid); }
+
+  .section-label {
+    font-size: 12px; font-weight: 700;
+    color: var(--text-sub); margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .edit-btn {
+    font-size: 12px; color: var(--green);
+    background: none; border: none; cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .task-btn {
+    width: 100%; padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .task-btn:last-of-type { margin-bottom: 0; }
+  .task-btn:active { transform: scale(0.99); }
+
+  .task-btn.done {
+    background: var(--green-light);
+    border-color: var(--green-mid);
+  }
+
+  .task-name { font-size: 14px; color: var(--text); }
+  .task-btn.done .task-name { color: var(--green-dark); text-decoration: line-through; }
+
+  .task-right { display: flex; align-items: center; gap: 8px; }
+
+  .pt-badge {
+    font-size: 12px; font-weight: 700;
+    color: var(--green-deep);
+    background: var(--green-light);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .task-btn.done .pt-badge { background: #9FE1CB; color: var(--green-dark); }
+
+  .del-btn {
+    background: none; border: none;
+    color: var(--text-hint); cursor: pointer;
+    font-size: 16px; padding: 0 2px;
+    line-height: 1;
+  }
+
+  .add-form { display: none; margin-top: 12px; }
+  .add-form.open { display: block; }
+
+  .add-inputs { display: flex; gap: 8px; margin-top: 8px; }
+
+  .add-inputs input {
+    flex: 1; height: 38px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 10px; font-size: 13px;
+    background: var(--bg); color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .add-inputs input.pt-in { width: 70px; flex: none; }
+
+  .add-inputs button {
+    height: 38px; padding: 0 16px;
+    background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 13px; cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+  }
+
+  .pts-row {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); padding-top: 12px; margin-top: 14px;
+  }
+
+  .pts-lbl { font-size: 13px; color: var(--text-sub); }
+  .pts-val { font-size: 16px; font-weight: 700; color: var(--green); }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem; text-align: center;
+  }
+
+  .stat-val { font-size: 24px; font-weight: 700; color: var(--text); }
+  .stat-lbl { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+
+  /* 履歴 */
+  .hist-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .hist-item:last-child { border-bottom: none; }
+  .hist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .hist-date { font-size: 14px; font-weight: 700; }
+  .hist-pts { font-size: 13px; font-weight: 700; color: var(--green); background: var(--green-light); padding: 3px 12px; border-radius: 20px; }
+  .hist-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hist-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; background: var(--bg); color: var(--text-sub); border: 1px solid var(--border); }
+  .hist-tag.bonus { background: var(--green-light); color: var(--green-dark); border-color: var(--green-mid); }
+  .hist-empty { font-size: 13px; color: var(--text-hint); text-align: center; padding: 2rem 0; }
+  .today-pill { font-size: 10px; background: var(--green); color: #fff; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+
+  /* バッジ */
+  .badges-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge.locked { background: var(--bg); color: var(--text-hint); border: 1px dashed var(--border); }
+  .badge.unlocked { background: var(--green-light); color: var(--green-dark); border: 1px solid var(--green-mid); }
+
+  /* データ管理 */
+  .data-btn {
+    width: 100%; padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+    font-size: 14px; font-weight: 500;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--text);
+    transition: background 0.15s;
+  }
+
+  .data-btn:hover { background: var(--green-light); }
+  .data-btn .icon { font-size: 18px; }
+
+  .sync-status {
+    font-size: 12px; color: var(--text-sub);
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+  }
+
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-hint); }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* トースト */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1a1a1a; color: #fff;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+    white-space: nowrap; z-index: 999;
+    font-weight: 500;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ログイン画面 */
+  .login-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .login-screen.show { display: flex; }
+  .login-logo { font-size: 48px; margin-bottom: 1.5rem; }
+  .login-title { font-size: 22px; font-weight: 700; margin-bottom: 0.5rem; }
+  .login-sub { font-size: 14px; color: var(--text-sub); margin-bottom: 2rem; line-height: 1.6; }
+
+  #g_id_signin { margin-bottom: 1rem; }
+
+  .skip-btn {
+    background: none; border: none;
+    color: var(--text-hint); font-size: 13px;
+    cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+    text-decoration: underline;
+    margin-top: 0.5rem;
+  }
 </style>
+</head>
+<body>
 
-<div class="app">
-  <div class="tab-row">
-    <button class="tab active" onclick="switchTab('home')">ホーム</button>
-    <button class="tab" onclick="switchTab('history')">履歴</button>
-    <button class="tab" onclick="switchTab('badges')">バッジ</button>
+<!-- ログイン画面 -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">📊</div>
+  <p class="login-title">アフィリエイト管理</p>
+  <p class="login-sub">Googleアカウントでログインすると<br>データがクラウドに自動保存されます</p>
+  <div id="g_id_signin"></div>
+  <button class="skip-btn" onclick="skipLogin()">ログインせずに使う</button>
+</div>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div>
+    <div class="header-title">アフィリエイト管理</div>
+    <div class="header-sub" id="headerDate"></div>
   </div>
+  <div class="header-right" id="headerRight">
+    <button class="google-btn" onclick="showLoginScreen()">
+      <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      ログイン
+    </button>
+  </div>
+</div>
 
-  <div id="tabHome">
-    <div class="card">
+<!-- タブ -->
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('home')">ホーム</button>
+  <button class="tab" onclick="switchTab('history')">履歴</button>
+  <button class="tab" onclick="switchTab('badges')">バッジ</button>
+  <button class="tab" onclick="switchTab('data')">データ管理</button>
+</div>
+
+<!-- ホーム -->
+<div class="page active" id="pageHome">
+  <div class="card">
+    <div class="streak-wrap">
       <div class="streak-circle">
         <span class="streak-num" id="streakNum">0</span>
-        <span class="streak-label">連続ログイン</span>
+        <span class="streak-lbl">連続ログイン</span>
       </div>
-      <p class="page-title">アフィリエイト管理</p>
-      <p class="page-sub" id="dateLabel"></p>
-      <div id="bonusArea"></div>
+      <p class="card-title-main">アフィリエイト管理</p>
+      <p class="card-date" id="dateLabel"></p>
     </div>
+    <div id="bonusArea"></div>
+  </div>
 
-    <div class="card">
-      <p class="section-title">
-        今日のデイリータスク
-        <button class="edit-toggle" id="editToggle" onclick="toggleEdit()">編集</button>
-      </p>
-      <div id="taskList"></div>
-      <div id="addRow" style="display:none">
-        <div class="add-row">
-          <input id="newTaskName" placeholder="タスク名を入力" />
-          <input id="newTaskPt" class="pt-input" type="number" placeholder="pt" min="1" max="999" />
-          <button onclick="addTask()">追加</button>
-        </div>
-      </div>
-      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid var(--color-border-tertiary);padding-top:12px">
-        <span style="font-size:13px;color:var(--color-text-secondary)">今日の獲得ポイント</span>
-        <span style="font-size:16px;font-weight:500;color:#0F6E56" id="todayPts">0 pt</span>
+  <div class="card">
+    <div class="section-label">
+      今日のデイリータスク
+      <button class="edit-btn" id="editToggle" onclick="toggleEdit()">編集</button>
+    </div>
+    <div id="taskList"></div>
+    <div class="add-form" id="addForm">
+      <div class="add-inputs">
+        <input id="newName" placeholder="タスク名を入力" />
+        <input id="newPt" class="pt-in" type="number" placeholder="pt" min="1" max="999" />
+        <button onclick="addTask()">追加</button>
       </div>
     </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val" id="totalPts">0</div>
-        <div class="stat-lbl">累計ポイント</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="taskDone">0/0</div>
-        <div class="stat-lbl">今日の達成タスク</div>
-      </div>
+    <div class="pts-row">
+      <span class="pts-lbl">今日の獲得ポイント</span>
+      <span class="pts-val" id="todayPts">0 pt</span>
     </div>
   </div>
 
-  <div id="tabHistory" style="display:none">
-    <div class="card">
-      <p class="section-title">作業履歴</p>
-      <div id="histList"></div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val" id="totalPts">0</div>
+      <div class="stat-lbl">累計ポイント</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="taskDone">0/0</div>
+      <div class="stat-lbl">今日の達成タスク</div>
+    </div>
+  </div>
+</div>
+
+<!-- 履歴 -->
+<div class="page" id="pageHistory">
+  <div class="card">
+    <div class="section-label">作業履歴</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- バッジ -->
+<div class="page" id="pageBadges">
+  <div class="card">
+    <div class="section-label">獲得バッジ</div>
+    <div class="badges-grid" id="badgesGrid"></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-val" id="totalPts2">0</div>
+      <div class="stat-lbl">累計ポイント</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="streak2">0</div>
+      <div class="stat-lbl">連続ログイン日数</div>
+    </div>
+  </div>
+</div>
+
+<!-- データ管理 -->
+<div class="page" id="pageData">
+  <div class="card">
+    <div class="section-label">クラウド保存</div>
+    <button class="data-btn" onclick="saveToCloud()">
+      <span class="icon">☁️</span> Googleドライブに今すぐ保存
+    </button>
+    <button class="data-btn" onclick="loadFromCloud()">
+      <span class="icon">🔄</span> Googleドライブから読み込む
+    </button>
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLabel">未ログイン</span>
     </div>
   </div>
 
-  <div id="tabBadges" style="display:none">
-    <div class="card">
-      <p class="section-title">獲得バッジ</p>
-      <div class="badges-row" id="badgesRow"></div>
-    </div>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val" id="totalPts2">0</div>
-        <div class="stat-lbl">累計ポイント</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="streakNum2">0</div>
-        <div class="stat-lbl">連続ログイン日数</div>
-      </div>
-    </div>
+  <div class="card">
+    <div class="section-label">バックアップ</div>
+    <button class="data-btn" onclick="exportData()">
+      <span class="icon">📥</span> JSONファイルとしてエクスポート
+    </button>
+    <button class="data-btn" onclick="document.getElementById('importFile').click()">
+      <span class="icon">📤</span> JSONファイルからインポート
+    </button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
+  </div>
+
+  <div class="card">
+    <div class="section-label" style="color:#e53e3e">危険な操作</div>
+    <button class="data-btn" style="color:#e53e3e" onclick="resetData()">
+      <span class="icon">🗑️</span> すべてのデータをリセット
+    </button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const DEFAULT_TASKS=[
-  {id:'open',name:'サイト・HPを開いた',pt:10},
-  {id:'write',name:'記事を書いた',pt:30},
-  {id:'post',name:'記事を投稿した',pt:20},
-  {id:'research',name:'キーワードリサーチをした',pt:15}
-];
-const BADGES=[
-  {id:'first',label:'初日達成',req:s=>s.totalPts>=10},
-  {id:'streak3',label:'3日連続',req:s=>s.streak>=3},
-  {id:'streak7',label:'7日連続',req:s=>s.streak>=7},
-  {id:'pts100',label:'100pt突破',req:s=>s.totalPts>=100},
-  {id:'pts500',label:'500pt突破',req:s=>s.totalPts>=500},
-  {id:'alldaily',label:'全タスク制覇',req:s=>s.allTaskDays>=1},
+const CLIENT_ID = '1001285093231-b2ldu7salens6idcoso95ddntvr1krgr.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME = 'affiliate_app_data.json';
+
+const DEFAULT_TASKS = [
+  {id:'open', name:'サイト・HPを開いた', pt:10},
+  {id:'write', name:'記事を書いた', pt:30},
+  {id:'post', name:'記事を投稿した', pt:20},
+  {id:'research', name:'キーワードリサーチをした', pt:15}
 ];
 
-let editMode=false;
-let currentTab='home';
+const BADGES = [
+  {id:'first', label:'初日達成', req:s=>s.totalPts>=10},
+  {id:'streak3', label:'3日連続', req:s=>s.streak>=3},
+  {id:'streak7', label:'7日連続', req:s=>s.streak>=7},
+  {id:'pts100', label:'100pt突破', req:s=>s.totalPts>=100},
+  {id:'pts500', label:'500pt突破', req:s=>s.totalPts>=500},
+  {id:'alldaily', label:'全タスク制覇', req:s=>s.allTaskDays>=1},
+];
 
-function today(){return new Date().toISOString().slice(0,10)}
-function load(){try{return JSON.parse(localStorage.getItem('aff3_state'))||{}}catch(e){return{}}}
-function save(){localStorage.setItem('aff3_state',JSON.stringify(state))}
+let editMode = false;
+let currentTab = 'home';
+let accessToken = null;
+let driveFileId = null;
+let userData = null;
+let state = {};
 
-function fmtDate(str){
-  const d=new Date(str+'T00:00:00');
-  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
+function today() { return new Date().toISOString().slice(0,10); }
+
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem('aff_v4')) || {}; } catch(e) { return {}; }
 }
 
-function initState(){
-  let s=load();
-  const td=today();
-  if(!s.lastLogin){
-    s={totalPts:0,streak:0,lastLogin:null,bonusToday:false,tasksDone:[],allTaskDays:0,unlockedBadges:[],tasks:DEFAULT_TASKS,history:{}};
+function saveLocal() {
+  localStorage.setItem('aff_v4', JSON.stringify(state));
+}
+
+function fmtDate(str) {
+  const d = new Date(str + 'T00:00:00');
+  const days = ['日','月','火','水','木','金','土'];
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+days[d.getDay()]+'）';
+}
+
+function initState(s) {
+  if (!s || !s.lastLogin) {
+    s = {totalPts:0, streak:0, lastLogin:null, bonusToday:false, tasksDone:[], allTaskDays:0, unlockedBadges:[], tasks:[...DEFAULT_TASKS], history:{}};
   }
-  if(!s.tasks)s.tasks=DEFAULT_TASKS;
-  if(!s.history)s.history={};
-  if(s.lastLogin!==td){
-    if(s.lastLogin){
-      s.history[s.lastLogin]={bonus:s.bonusToday,tasksDone:[...s.tasksDone],pts:calcDayPts(s)};
+  if (!s.tasks) s.tasks = [...DEFAULT_TASKS];
+  if (!s.history) s.history = {};
+  const td = today();
+  if (s.lastLogin !== td) {
+    if (s.lastLogin) {
+      s.history[s.lastLogin] = {bonus:s.bonusToday, tasksDone:[...s.tasksDone], pts:calcDayPts(s)};
     }
-    const prev=new Date();prev.setDate(prev.getDate()-1);
-    const yd=prev.toISOString().slice(0,10);
-    if(s.lastLogin===null)s.streak=1;
-    else s.streak=s.lastLogin===yd?(s.streak||0)+1:1;
-    s.lastLogin=td;s.bonusToday=false;s.tasksDone=[];
-    localStorage.setItem('aff3_state',JSON.stringify(s));
+    const prev = new Date(); prev.setDate(prev.getDate()-1);
+    const yd = prev.toISOString().slice(0,10);
+    if (!s.lastLogin) s.streak = 1;
+    else s.streak = s.lastLogin === yd ? (s.streak||0)+1 : 1;
+    s.lastLogin = td; s.bonusToday = false; s.tasksDone = [];
   }
   return s;
 }
 
-function calcDayPts(s){
-  return (s.bonusToday?20:0)+s.tasksDone.reduce((a,id)=>{const t=s.tasks.find(t=>t.id===id);return a+(t?t.pt:0);},0);
+function calcDayPts(s) {
+  return (s.bonusToday?20:0) + s.tasksDone.reduce((a,id)=>{
+    const t = s.tasks.find(t=>t.id===id); return a+(t?t.pt:0);
+  }, 0);
 }
 
-let state=initState();
-
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-function checkBadges(){
-  BADGES.forEach(b=>{
-    if(!state.unlockedBadges.includes(b.id)&&b.req(state)){
+function checkBadges() {
+  BADGES.forEach(b => {
+    if (!state.unlockedBadges.includes(b.id) && b.req(state)) {
       state.unlockedBadges.push(b.id);
-      showToast('バッジ獲得: '+b.label+' !');
+      setTimeout(()=>showToast('🏆 バッジ獲得: '+b.label+' !'), 300);
     }
   });
 }
 
-function switchTab(tab){
-  currentTab=tab;
-  ['home','history','badges'].forEach(t=>{
-    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).style.display=t===tab?'block':'none';
-  });
-  document.querySelectorAll('.tab').forEach((el,i)=>{
-    el.classList.toggle('active',['home','history','badges'][i]===tab);
-  });
-  if(tab==='history')renderHistory();
-  if(tab==='badges')renderBadges();
+// Google Identity Services
+window.onload = function() {
+  const saved = loadLocal();
+  state = initState(saved);
+  saveLocal();
+
+  const d = new Date();
+  const dateStr = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  document.getElementById('headerDate').textContent = dateStr;
+  document.getElementById('dateLabel').textContent = dateStr;
+
+  const loggedIn = localStorage.getItem('aff_google_skipped');
+  if (!loggedIn) {
+    document.getElementById('loginScreen').classList.add('show');
+  }
+
+  if (window.google) {
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: handleCredential,
+      auto_select: false,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('g_id_signin'),
+      {theme:'outline', size:'large', locale:'ja', text:'signin_with'}
+    );
+  }
+
+  render();
+};
+
+function handleCredential(response) {
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  userData = payload;
+  document.getElementById('loginScreen').classList.remove('show');
+  localStorage.setItem('aff_google_skipped', 'true');
+  updateHeaderUser();
+  showToast('ようこそ、'+payload.name+'さん！');
+  getAccessToken();
 }
 
-function toggleEdit(){
-  editMode=!editMode;
-  document.getElementById('editToggle').textContent=editMode?'完了':'編集';
-  document.getElementById('addRow').style.display=editMode?'block':'none';
+function getAccessToken() {
+  if (!window.google) return;
+  const tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (tokenResponse) => {
+      if (tokenResponse.access_token) {
+        accessToken = tokenResponse.access_token;
+        updateSyncStatus('ok', '接続済み');
+        autoLoadFromCloud();
+      }
+    },
+  });
+  tokenClient.requestAccessToken({prompt:''});
+}
+
+function updateHeaderUser() {
+  if (!userData) return;
+  const right = document.getElementById('headerRight');
+  right.innerHTML = `
+    <span class="user-name">${userData.name}</span>
+    <img class="user-avatar" src="${userData.picture}" alt="" onclick="showToast('${userData.email}')"/>
+  `;
+}
+
+function showLoginScreen() {
+  document.getElementById('loginScreen').classList.add('show');
+}
+
+function skipLogin() {
+  localStorage.setItem('aff_google_skipped', 'true');
+  document.getElementById('loginScreen').classList.remove('show');
+  showToast('ローカル保存モードで使用します');
+}
+
+function updateSyncStatus(status, label) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot ' + status;
+  lbl.textContent = label;
+}
+
+// Google Drive
+async function saveToCloud() {
+  if (!accessToken) { showToast('先にGoogleログインしてください'); return; }
+  updateSyncStatus('syncing', '保存中...');
+  try {
+    const content = JSON.stringify(state);
+    let res;
+    if (driveFileId) {
+      res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {'Authorization':'Bearer '+accessToken, 'Content-Type':'application/json'},
+        body: content
+      });
+    } else {
+      const meta = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22'+FILE_NAME+'%22', {
+        headers: {'Authorization':'Bearer '+accessToken}
+      }).then(r=>r.json());
+
+      if (meta.files && meta.files.length > 0) {
+        driveFileId = meta.files[0].id;
+        res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: {'Authorization':'Bearer '+accessToken, 'Content-Type':'application/json'},
+          body: content
+        });
+      } else {
+        const boundary = 'boundary123';
+        const body = `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({name:FILE_NAME, parents:['appDataFolder']})}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+        res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: {'Authorization':'Bearer '+accessToken, 'Content-Type':`multipart/related; boundary=${boundary}`},
+          body
+        });
+        const data = await res.json();
+        driveFileId = data.id;
+      }
+    }
+    const now = new Date();
+    updateSyncStatus('ok', '保存済み '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'));
+    showToast('☁️ Googleドライブに保存しました');
+  } catch(e) {
+    updateSyncStatus('', 'エラー');
+    showToast('保存に失敗しました');
+  }
+}
+
+async function autoLoadFromCloud() {
+  if (!accessToken) return;
+  try {
+    const meta = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%22'+FILE_NAME+'%22', {
+      headers: {'Authorization':'Bearer '+accessToken}
+    }).then(r=>r.json());
+    if (meta.files && meta.files.length > 0) {
+      driveFileId = meta.files[0].id;
+      const content = await fetch(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`, {
+        headers: {'Authorization':'Bearer '+accessToken}
+      }).then(r=>r.json());
+      state = initState(content);
+      saveLocal();
+      render();
+      const now = new Date();
+      updateSyncStatus('ok', '同期済み '+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0'));
+      showToast('☁️ クラウドからデータを読み込みました');
+    }
+  } catch(e) {}
+}
+
+async function loadFromCloud() {
+  if (!accessToken) { showToast('先にGoogleログインしてください'); return; }
+  await autoLoadFromCloud();
+}
+
+// Export / Import
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'affiliate_backup_'+today()+'.json';
+  a.click();
+  showToast('📥 エクスポートしました');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      state = initState(imported);
+      saveLocal();
+      render();
+      showToast('📤 インポートしました');
+    } catch(err) {
+      showToast('ファイルの読み込みに失敗しました');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function resetData() {
+  if (!confirm('すべてのデータをリセットしますか？この操作は取り消せません。')) return;
+  state = initState(null);
+  saveLocal();
+  render();
+  showToast('データをリセットしました');
+}
+
+// UI
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+  document.querySelectorAll('.tab')[['home','history','badges','data'].indexOf(tab)].classList.add('active');
+  if (tab==='history') renderHistory();
+  if (tab==='badges') renderBadges();
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.getElementById('editToggle').textContent = editMode ? '完了' : '編集';
+  document.getElementById('addForm').classList.toggle('open', editMode);
   renderTasks();
 }
 
-function addTask(){
-  const name=document.getElementById('newTaskName').value.trim();
-  const pt=parseInt(document.getElementById('newTaskPt').value)||10;
-  if(!name)return;
-  state.tasks.push({id:'t'+Date.now(),name,pt});
-  document.getElementById('newTaskName').value='';
-  document.getElementById('newTaskPt').value='';
-  save();renderTasks();
+function addTask() {
+  const name = document.getElementById('newName').value.trim();
+  const pt = parseInt(document.getElementById('newPt').value) || 10;
+  if (!name) return;
+  state.tasks.push({id:'t'+Date.now(), name, pt});
+  document.getElementById('newName').value = '';
+  document.getElementById('newPt').value = '';
+  saveLocal(); renderTasks();
 }
 
-function deleteTask(id){
-  state.tasks=state.tasks.filter(t=>t.id!==id);
-  state.tasksDone=state.tasksDone.filter(d=>d!==id);
-  save();renderTasks();
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t=>t.id!==id);
+  state.tasksDone = state.tasksDone.filter(d=>d!==id);
+  saveLocal(); renderTasks();
 }
 
-function tapTask(id){
-  if(state.tasksDone.includes(id))return;
-  const t=state.tasks.find(t=>t.id===id);
-  if(!t)return;
+function tapTask(id) {
+  if (state.tasksDone.includes(id)) return;
+  const t = state.tasks.find(t=>t.id===id);
+  if (!t) return;
   state.tasksDone.push(id);
-  state.totalPts+=t.pt;
-  if(state.tasksDone.length===state.tasks.length)state.allTaskDays=(state.allTaskDays||0)+1;
-  checkBadges();save();renderTasks();renderStats();
-  showToast(t.name+' +'+t.pt+'pt !');
+  state.totalPts += t.pt;
+  if (state.tasksDone.length === state.tasks.length) state.allTaskDays = (state.allTaskDays||0)+1;
+  checkBadges(); saveLocal(); renderTasks(); renderStats();
+  showToast('✅ '+t.name+' +'+t.pt+'pt !');
 }
 
-function renderTasks(){
-  const taskList=document.getElementById('taskList');
-  taskList.innerHTML='';
-  state.tasks.forEach(t=>{
-    const done=state.tasksDone.includes(t.id);
-    const btn=document.createElement('button');
-    btn.className='task-btn'+(done?' completed':'');
-    btn.innerHTML=`<span class="task-label">${t.name}</span><span class="task-right"><span class="task-pt">+${t.pt}pt</span>${editMode?`<button class="del-btn" onclick="event.stopPropagation();deleteTask('${t.id}')">✕</button>`:''}</span>`;
-    if(!done&&!editMode)btn.onclick=()=>tapTask(t.id);
-    taskList.appendChild(btn);
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  state.tasks.forEach(t => {
+    const done = state.tasksDone.includes(t.id);
+    const btn = document.createElement('button');
+    btn.className = 'task-btn' + (done?' done':'');
+    btn.innerHTML = `<span class="task-name">${t.name}</span><span class="task-right"><span class="pt-badge">+${t.pt}pt</span>${editMode?`<button class="del-btn" onclick="event.stopPropagation();deleteTask('${t.id}')">✕</button>`:''}</span>`;
+    if (!done && !editMode) btn.onclick = ()=>tapTask(t.id);
+    list.appendChild(btn);
   });
 }
 
-function renderStats(){
-  const todayPts=calcDayPts(state);
-  document.getElementById('todayPts').textContent=todayPts+' pt';
-  document.getElementById('totalPts').textContent=state.totalPts;
-  document.getElementById('taskDone').textContent=state.tasksDone.length+'/'+state.tasks.length;
+function renderStats() {
+  const tp = calcDayPts(state);
+  document.getElementById('todayPts').textContent = tp+' pt';
+  document.getElementById('totalPts').textContent = state.totalPts;
+  document.getElementById('taskDone').textContent = state.tasksDone.length+'/'+state.tasks.length;
+  document.getElementById('streakNum').textContent = state.streak;
 }
 
-function renderHistory(){
-  const histList=document.getElementById('histList');
-  const keys=Object.keys(state.history).sort((a,b)=>b.localeCompare(a));
-  const todayData={bonus:state.bonusToday,tasksDone:[...state.tasksDone],pts:calcDayPts(state)};
-  const allKeys=[today(),...keys];
-  const allData={[today()]:todayData,...state.history};
-
-  if(allKeys.length===0){histList.innerHTML='<p class="hist-empty">まだ履歴がありません</p>';return;}
-  histList.innerHTML='';
-  allKeys.forEach(date=>{
-    const d=allData[date];
-    if(!d&&date!==today())return;
-    const item=document.createElement('div');item.className='hist-item';
-    const tags=[];
-    if(d.bonus)tags.push({label:'ログインボーナス',bonus:true});
-    (d.tasksDone||[]).forEach(id=>{
-      const t=state.tasks.find(t=>t.id===id);
-      if(t)tags.push({label:t.name,bonus:false});
+function renderHistory() {
+  const list = document.getElementById('histList');
+  const td = today();
+  const allDates = [td, ...Object.keys(state.history).sort((a,b)=>b.localeCompare(a))];
+  const allData = {[td]:{bonus:state.bonusToday, tasksDone:[...state.tasksDone], pts:calcDayPts(state)}, ...state.history};
+  if (allDates.length === 0) { list.innerHTML='<p class="hist-empty">まだ履歴がありません</p>'; return; }
+  list.innerHTML = '';
+  allDates.forEach(date => {
+    const d = allData[date];
+    if (!d) return;
+    const item = document.createElement('div');
+    item.className = 'hist-item';
+    const tags = [];
+    if (d.bonus) tags.push({label:'ログインボーナス', bonus:true});
+    (d.tasksDone||[]).forEach(id => {
+      const t = state.tasks.find(t=>t.id===id);
+      if (t) tags.push({label:t.name, bonus:false});
     });
-    const isToday=date===today();
-    item.innerHTML=`
+    item.innerHTML = `
       <div class="hist-header">
-        <span class="hist-date">${fmtDate(date)}${isToday?' <span style="font-size:11px;color:#0F6E56;background:#E1F5EE;padding:2px 8px;border-radius:10px;margin-left:6px">今日</span>':''}</span>
+        <span class="hist-date">${fmtDate(date)}${date===td?'<span class="today-pill">今日</span>':''}</span>
         <span class="hist-pts">${d.pts||0} pt</span>
       </div>
-      <div class="hist-tasks">${tags.length?tags.map(tg=>`<span class="hist-tag${tg.bonus?' bonus':''}">${tg.label}</span>`).join(''):'<span class="hist-tag">記録なし</span>'}</div>
+      <div class="hist-tags">${tags.length ? tags.map(tg=>`<span class="hist-tag${tg.bonus?' bonus':''}">${tg.label}</span>`).join('') : '<span class="hist-tag">記録なし</span>'}</div>
     `;
-    histList.appendChild(item);
+    list.appendChild(item);
   });
 }
 
-function renderBadges(){
-  document.getElementById('totalPts2').textContent=state.totalPts;
-  document.getElementById('streakNum2').textContent=state.streak;
-  const badgesRow=document.getElementById('badgesRow');
-  badgesRow.innerHTML='';
-  BADGES.forEach(b=>{
-    const unlocked=state.unlockedBadges.includes(b.id);
-    const el=document.createElement('span');
-    el.className='badge '+(unlocked?'unlocked':'locked');
-    el.textContent=b.label;
-    badgesRow.appendChild(el);
+function renderBadges() {
+  document.getElementById('totalPts2').textContent = state.totalPts;
+  document.getElementById('streak2').textContent = state.streak;
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = '';
+  BADGES.forEach(b => {
+    const unlocked = state.unlockedBadges.includes(b.id);
+    const el = document.createElement('span');
+    el.className = 'badge '+(unlocked?'unlocked':'locked');
+    el.textContent = (unlocked?'🏆 ':'')+b.label;
+    grid.appendChild(el);
   });
 }
 
-function render(){
-  const d=new Date();
-  document.getElementById('dateLabel').textContent=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
-  document.getElementById('streakNum').textContent=state.streak;
-  const bonusArea=document.getElementById('bonusArea');
-  if(state.bonusToday){
-    bonusArea.innerHTML='<div class="big-btn done-state">ログインボーナス受取済み ＋20pt</div>';
-  }else{
-    bonusArea.innerHTML='<button class="big-btn green" id="bonusBtn">ログインボーナスを受け取る（＋20pt）</button>';
-    document.getElementById('bonusBtn').onclick=()=>{
-      state.bonusToday=true;state.totalPts+=20;
-      checkBadges();save();render();showToast('ログインボーナス +20pt !');
+function render() {
+  const bonusArea = document.getElementById('bonusArea');
+  if (state.bonusToday) {
+    bonusArea.innerHTML = '<button class="big-btn received">ログインボーナス受取済み ＋20pt</button>';
+  } else {
+    bonusArea.innerHTML = '<button class="big-btn green" id="bonusBtn">ログインボーナスを受け取る（＋20pt）</button>';
+    document.getElementById('bonusBtn').onclick = () => {
+      state.bonusToday = true; state.totalPts += 20;
+      checkBadges(); saveLocal(); render(); showToast('🎁 ログインボーナス +20pt !');
     };
   }
-  renderTasks();renderStats();
+  renderTasks(); renderStats();
 }
-
-render();
 </script>
+</body>
+</html>
